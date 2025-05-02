@@ -11,12 +11,24 @@ const main = async () => {
         opt = await inquireMenu();
         switch (opt) {
             case 1:
-                // Show Cities
+                // Cities
                 const term = await readInput('City: ');
                 const places = await searches.city(term);
                 const id = await listPlaces(places);
-                
-                searches.showCityInfo(places.find(p => p.id === id));
+
+                if (id === '0') continue;
+
+                const place = places.find(p => p.id === id);
+
+
+
+                // Weather
+                const weather = await searches.weather(place.lat, place.lon);
+
+
+                searches.showCityInfo(place, weather);
+
+
 
                 break;
 
