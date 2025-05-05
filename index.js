@@ -20,7 +20,8 @@ const main = async () => {
 
                 const place = places.find(p => p.id === id);
 
-
+                // Add to history
+                searches.addHistory(place.name);
 
                 // Weather
                 const weather = await searches.weather(place.lat, place.lon);
@@ -33,7 +34,11 @@ const main = async () => {
                 break;
 
             case 2:
-                // Show history                    
+                // Show history
+                searches.capitalizedHistory.forEach((place, i) => {
+                    const idx = `${i + 1}.`.green;
+                    console.log(`${idx} ${place}`);
+                });                    
                 break;
         }
 

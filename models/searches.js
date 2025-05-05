@@ -1,10 +1,13 @@
+const fs = require('fs');
+
 const axios = require('axios');
 
 class Searches {
-    history = ['Barcelona', 'San Francisco', 'Madrid'];
+    history = [];
+    dbPath = './db/database.json';
 
     constructor() {
-        // TODO: Read DB if exists
+        this.readDB();
     }
 
     get paramsMapbox() {
@@ -21,6 +24,50 @@ class Searches {
             'units': 'metric',
             'lang': 'es'
         }
+    }
+
+    get capitalizedHistory() {
+        return this.history.map(place => {
+            let words = place.split(' ');
+            words = words.map(word => word[0].toUpperCase() + word.substring(1));
+            return words.join(' ');
+        });   
+    }
+            
+
+    addHistory(place = '') {
+        if (this.history.includes(place.toLowerCase())) {
+            return;
+        }
+
+        this.history = this.history.splice(0, 4);
+        this.history.unshift(place.toLowerCase());
+
+        this.saveDB();
+    }
+
+    saveDB() {
+        const payload = {
+            history: this.history
+        }
+
+        const dir = this.dbPath.substring(0, this.dbPath.lastIndexOf('/'));
+        if (!fs.existsSync(dir)) {
+            fs.mkdirSync(dir, { recursive: true });
+        }
+
+        fs.writeFileSync(this.dbPath, JSON.stringify(payload));
+    }
+
+    readDB() {
+        if (!fs.existsSync(this.dbPath)) {
+            return;
+        }
+        // Read the file
+        const info = fs.readFileSync(this.dbPath, { encoding: 'utf-8' });
+        const data = JSON.parse(info);
+        this.history = data.history;
+        this.history = this.history.map(place => place.toLowerCase());
     }
 
 
@@ -43,16 +90,18 @@ class Searches {
     }
 
     showCityInfo(place, weather) {
+        console.clear();
         console.log('\nCity Information\n'.green);
-        console.log('City:', place.name);
+        console.log('City:', place.name.green);
         console.log('Lat:', place.lat);
         console.log('Lon:', place.lon);
         console.log('Temperature:', weather.temp);
         console.log('Min temperature:', weather.temp_min);
         console.log('Max temperature:', weather.temp_max);
-        console.log('Description:', weather.desc);
+        console.log('Description:', weather.desc.green);
         console.log('Humidity:', weather.humidity);
         console.log('Wind Speed:', weather.wind);
+        console.log('Pressure:', weather.pressure);
         console.log('Feels Like:', weather.feels_like);
     }
 
@@ -74,6 +123,7 @@ class Searches {
             'temp': main.temp,
             'temp_min': main.temp_min,
             'temp_max': main.temp_max,
+            'pressure': main.pressure,
          }   
         } catch (error) {
             console.log('Error in weather:', error);
